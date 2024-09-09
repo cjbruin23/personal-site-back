@@ -42,11 +42,16 @@ app.get("/", (_request: Request, response: Response) => {
 
 app.post("/story", async (_request: Request, response: Response) => {
   
-  console.log("request", _request.body)
+  const body = _request.body;
   try {
-    const result = await db.insertInto('stories').values(_request.body).executeTakeFirst();
-    console.log('result', result)
-    response.status(201).send("hitting story endpoint");
+    const storyExists = await db.selectFrom('stories').where('name', '=', body.name).executeTakeFirst();
+    if (storyExists) {
+      response.status(409).send('Book title already exists')
+    } else {
+      const result = await db.insertInto('stories').values(_request.body).executeTakeFirst();
+      console.log('result', result)
+      response.status(201).send("hitting story endpoint");
+    }
 
   } catch (err) {
     console.error(err)
