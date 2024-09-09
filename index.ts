@@ -1,15 +1,17 @@
 import express, { Request, Response } from "express";
 import dotenv from "dotenv";
-var cors = require("cors");
 import { Kysely, PostgresDialect } from "kysely";
-import { Client, Pool } from "pg";
+import { Pool } from "pg";
 import { Database } from "./src/types";
-const fs = require('fs');
+import fs from 'fs';
+
+var cors = require("cors");
 
 // configures dotenv to work in your application
 dotenv.config();
 const app = express();
 app.use(cors());
+app.use(express.json())
 
 const PORT = process.env.PORT;
 
@@ -30,23 +32,16 @@ try {
   db = new Kysely<Database>({
     dialect,
   });
-
-  console.log("db", db);
 } catch (e) {
   console.error(e);
 }
 
 app.get("/", async (_request: Request, response: Response) => {
-  const result = await db.selectFrom('stories')
-  .selectAll()
-  .executeTakeFirst();
-  console.log('result', result)
-
   response.status(200).send("Connected to Server");
 });
 
-app.post("/story", (request: Request, response: Response) => {
-  console.log("request", request);
+app.post("/story", (_request: Request, response: Response) => {
+  console.log("request", _request.body)
   response.status(201).send("hitting story endpoint");
 });
 
@@ -55,6 +50,5 @@ app
     console.log("Server running at PORT: ", PORT);
   })
   .on("error", (error) => {
-    // gracefully handle error
     throw new Error(error.message);
   });
