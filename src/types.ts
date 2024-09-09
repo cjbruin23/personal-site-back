@@ -1,10 +1,11 @@
-import { Insertable, Selectable, Updateable } from "kysely"
+import { Generated, Insertable, Selectable, Updateable } from "kysely"
 
 export interface Database {
     stories: StoriesTable
 }
 
 export interface StoriesTable {
+    id: Generated<number>
     name: string
     desc: string
     user_id: string

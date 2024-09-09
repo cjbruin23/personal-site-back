@@ -36,13 +36,22 @@ try {
   console.error(e);
 }
 
-app.get("/", async (_request: Request, response: Response) => {
+app.get("/", (_request: Request, response: Response) => {
   response.status(200).send("Connected to Server");
 });
 
-app.post("/story", (_request: Request, response: Response) => {
+app.post("/story", async (_request: Request, response: Response) => {
+  
   console.log("request", _request.body)
-  response.status(201).send("hitting story endpoint");
+  try {
+    const result = await db.insertInto('stories').values(_request.body).executeTakeFirst();
+    console.log('result', result)
+    response.status(201).send("hitting story endpoint");
+
+  } catch (err) {
+    console.error(err)
+    response.status(500).send('Error creating record. Check server for more details')
+  }
 });
 
 app
