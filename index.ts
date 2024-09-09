@@ -16,54 +16,32 @@ const PORT = process.env.PORT;
 let dialect: PostgresDialect;
 let db: Kysely<Database>;
 
-// try {
-//   console.log("process.env.DATABASE_URL", process.env.DATABASE_URL);
-//   dialect = new PostgresDialect({
-//     pool: async () =>
-//       new Pool({
-//         user: "postgres",
-//         password: "ePihHTRt1nQ3Flmr",
-//         host: "pugnaciously-true-zorilla.data-1.use1.tembo.io",
-//         port: 5432,
-//         database: "postgres",
-//       }),
-//   });
+try {
+  dialect = new PostgresDialect({
+    pool: async () =>
+      new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: {
+          ca: fs.readFileSync('./ca.crt').toString(),
+        },
+      })
+  });
 
-//   db = new Kysely<Database>({
-//     dialect,
-//   });
+  db = new Kysely<Database>({
+    dialect,
+  });
 
-//   console.log("db", db);
-// } catch (e) {
-//   console.error(e);
-// }
-const pool = new Pool({
-	connectionString: process.env.DATABASE_URL,
-	ssl: {
-		ca: fs.readFileSync('./ca.crt').toString(),
-	},
-});
-
-async function testQuery() {
-	const client = await pool.connect();
-	try {
-		const response = await client.query('SELECT * from stories');
-		console.log(response.rows[0]);
-	} finally {
-		client.release();
-	}
+  console.log("db", db);
+} catch (e) {
+  console.error(e);
 }
 
-testQuery();
+app.get("/", async (_request: Request, response: Response) => {
+  const result = await db.selectFrom('stories')
+  .selectAll()
+  .executeTakeFirst();
+  console.log('result', result)
 
-app.get("/", (_request: Request, response: Response) => {
-  // client.query('SELECT * FROM stories', (err, result) => {
-  //   if (err) {
-  //     console.error('Error executing query', err);
-  //   } else {
-  //     console.log('Query result:', result.rows);
-  //   }
-  // });
   response.status(200).send("Connected to Server");
 });
 
